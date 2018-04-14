@@ -15,7 +15,7 @@ There are no dependencies for the compiled JAR file, but if you wish to compile 
 # Class Structures
 Each of the "category" from the Full List on mattconsto's project was turned into a Static class, and each "sub-category" was turned into a Static Method containing the generator js.min file that generates the names. The JavaScript code is executed via the ScriptEngine class. The Methods receive two parameters, gender (0: Male and 1: Female) and amount (how many names you want to be generated) and return an array with all the generated names.
 
-The ClassGenerator class uses a template to generate all the static classes. It reads all the js.min files from the "fantasy-names/generators" folder, and writes all the .java files on the "out" folder.
+The ClassGenerator class uses a template to generate all the static classes. It reads all the js.min files from the "fantasy-names/generators" folder, and writes all the .java files on the "out" folder (which must exist!).
 
 # Usage
 As explained above, usage is simple, just call the Static Method from the desired class. The following example from mattconsto's reposity can be replicated with JavaFantasyNames like this:
