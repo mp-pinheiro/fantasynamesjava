@@ -8,6 +8,7 @@ import com.google.common.base.CaseFormat;
 
 public class ClassGenerator {
 	static FileWriter fileWriter;
+	private static boolean genderless;
 	
 	public static void generateClassFooter() throws IOException {
 		String template = "" + 
@@ -17,30 +18,42 @@ public class ClassGenerator {
 		fileWriter.write(template);
 	}
 	
-	public static void generateClassBody(String fileName, String className, String javaScript, String parentFolder) {
+	public static void generateClassBody(String fileName, String camelName, String className, String javaScript, String parentFolder) {
 		try {
+			String methodName = "";
+			String methodCall = "";
+			if(!genderless) {
+				methodName = "	public static String[] generate" + camelName + "(int gender, int amount) {\r\n";
+				methodCall = "				names[i] = (String) engine.eval(\"generator$" + parentFolder + "$" + fileName + "(\" + gender + \")\");\r\n";
+			}else {
+				methodName = "	public static String[] generate" + camelName + "(int amount) {\r\n";
+				methodCall = "				names[i] = (String) engine.eval(\"generator$" + parentFolder + "$" + fileName + "()\");\r\n";
+			}
+			
 			String template = "" +
-				"	private static void load" + fileName + "Generator() {\r\n" + 
+				"	private static void load" + camelName + "Generator() {\r\n" + 
 				"		try {\r\n" + 
 				"			engine.eval(\"" + javaScript + "\");\r\n" + 
 				"		} catch (ScriptException e) {\r\n" + 
-				"			System.err.println(\"Failed to load " + fileName + " JavaScript generator.\");\r\n" + 
+				"			System.err.println(\"Failed to load " + camelName + " JavaScript generator.\");\r\n" + 
 				"			e.printStackTrace();\r\n" + 
 				"		}\r\n" + 
 				"	}\r\n" + 
 				"	\r\n" + 
-				"	public static String[] generate" + fileName + "(int gender, int amount) {\r\n" + 
+					methodName + 
 				"		String[] names = new String[amount];\r\n" + 
 				"		try {\r\n" + 
-				"			load" + fileName + "Generator();\r\n" + 
+				"			load" + camelName + "Generator();\r\n" + 
 				"			for (int i = 0; i < names.length; i++) {\r\n" + 
-				"				names[i] = (String) engine.eval(\"generator$" + parentFolder + "$" + fileName.toLowerCase() + "(\" + gender + \")\");\r\n" + 
+								methodCall + 
 				"			}\r\n" + 
 				"		} catch (ScriptException e) {\r\n" + 
 				"			e.printStackTrace();\r\n" + 
 				"		}\r\n" + 
 				"		return names;\r\n" + 
 				"	}\r\n";
+			
+			
 		
 			fileWriter.write(template);
 		} catch (IOException e) {
@@ -83,9 +96,11 @@ public class ClassGenerator {
 					if(!gFile.getName().endsWith(".min.js")) continue;
 					
 					System.out.println("Parsing file " + gFile + "...");
-					String camelName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, gFile.getName()).replaceAll(".min.js", "");
+					String fileName = gFile.getName().replaceAll(".min.js", "");
+					String camelName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, fileName);
 					String javaScript = FileUtils.readFileToString(gFile, "UTF-8").replaceAll("\\\\", "\\\\\\\\").replaceAll("\\\"", "\\\\\"").replaceAll("\n", "");
-					generateClassBody(camelName, className, javaScript, parentFolder);
+					genderless = javaScript.contains("(){var ");
+					generateClassBody(fileName, camelName, className, javaScript, parentFolder);
 					fileWriter.write("\r\n");
 				}
 				
